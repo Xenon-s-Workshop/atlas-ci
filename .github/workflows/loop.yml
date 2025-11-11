@@ -22,7 +22,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.13'
         timeout-minutes: 5
         continue-on-error: false
 
@@ -40,6 +40,7 @@ jobs:
           playwright install
           playwright install chromium
           pip install -r requirements.txt
+          pip install --upgrade pymongo[srv] certifi
           python main.py
         timeout-minutes: 340
         continue-on-error: true
