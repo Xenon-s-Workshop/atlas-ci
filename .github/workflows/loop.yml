@@ -1,70 +1,60 @@
-name: CI for PDF MCQ Extractor Bot
+name: Telegram MCQ Bot
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
   workflow_dispatch:
-
-env:
-  mail: ${{ secrets.GITHUBMAIL }}
-  username: ${{ secrets.GITHUBNAME }}
-  ACTIONS_RUNNER_DEBUG: true
-  ACTIONS_STEP_DEBUG: true
 
 jobs:
   mcq-extractor-bot:
-    name: PDF MCQ Extractor Bot
     runs-on: ubuntu-latest
+    timeout-minutes: 340
+
     steps:
-      - name: Checkout Repository
+      - name: Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-        timeout-minutes: 5
-        continue-on-error: false
 
       - name: Install system dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y poppler-utils
-          sudo apt-get install -y libpoppler-cpp-dev
-        timeout-minutes: 10
+          sudo apt-get install -y poppler-utils libpoppler-cpp-dev
 
       - name: Install Python dependencies
         run: |
-          pip install --upgrade pip
+          python -m pip install --upgrade pip
           pip install -r requirements.txt
-        timeout-minutes: 10
 
-      - name: Run PDF MCQ Extractor Bot
+      - name: Run Telegram Bot
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TG_TOKEN }}
           GEMINI_API_KEYS: ${{ secrets.KEYS }}
+          QUIZ_MARKER: ${{ secrets.QUIZ_MARKER }}
+          EXPLANATION_TAG: ${{ secrets.EXPLANATION_TAG }}
         run: |
           python main.py
-        timeout-minutes: 340
-        continue-on-error: true
 
   looper:
-    name: Run Bot Loop
-    needs: [mcq-extractor-bot]
+    needs: mcq-extractor-bot
     runs-on: ubuntu-latest
+    
     steps:
-      - name: Checkout Repository
+      - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Set Git Configs
+        with:
+          token: ${{ secrets.GH_TOKEN }}
+      
+      - name: Configure Git
         run: |
-          git config --global user.email "${{ env.mail }}"
-          git config --global user.name "${{ env.username }}"
-          git config --global pull.rebase false
-
-      - name: Create an empty commit to re-trigger workflow
+          git config --global user.email "${{ secrets.GITHUBMAIL }}"
+          git config --global user.name "${{ secrets.GITHUBNAME }}"
+      
+      - name: Commit empty change to trigger workflow
         run: |
-          git pull
-          git commit --allow-empty -m "[LOOP] Re-run PDF MCQ Extractor Bot workflow - $(date '+%Y-%m-%d %H:%M:%S')"
-          git push https://${{ secrets.GH_TOKEN }}@github.com/${{ github.repository }}
-        continue-on-error: true
+          git commit --allow-empty -m "Auto-restart workflow"
+          git push
