@@ -9,7 +9,7 @@ from threading import Lock
 import io
 import traceback
 
-from google import genai
+import google.genai as genai
 from google.genai import types
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.ext import (
