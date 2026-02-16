@@ -37,6 +37,7 @@ jobs:
           MONGODB_URI: ${{ secrets.URI }}
           QUIZ_MARKER: ${{ secrets.QUIZ_MARKER }}
           EXPLANATION_TAG: ${{ secrets.EXPLANATION_TAG }}
+          SUDO_USER_IDS: ${{ secrets.IDS }}
         run: |
           python main.py
 
